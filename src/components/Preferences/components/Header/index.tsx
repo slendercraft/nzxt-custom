@@ -6,6 +6,7 @@ import {
   AiFillGithub as GitIcon,
   AiOutlineInstagram as InstagramIcon,
   AiOutlineYoutube as YoutubeIcon,
+
 } from 'react-icons/ai'
 
 import { Dialog } from 'components/Preferences/components/Dialog'
@@ -40,37 +41,16 @@ export const Header = () => {
     <Container>
       <div className="info">
         <div className="title">
-          Dual Info <span>v1.6.3</span>
+          Dual Info <span>v1.6.3 [Custom]</span>
         </div>
 
         <div className="author">
           <span>
-            by <i>Bruno Andrade</i>
+            Original by <i><a title="github" target="_blank" href="https://github.com/brunoandradebr">Bruno Andrade</a></i>
           </span>
-
-          <div className="author-social">
-            <a title="github" target="_blank" href="https://github.com/brunoandradebr">
-              <GitIcon size={22} />
-            </a>
-
-            <a
-              title="instagram"
-              target="_blank"
-              href="https://www.instagram.com/brunoandradebr/"
-            >
-              <InstagramIcon size={22} />
-            </a>
-
-            <a
-              title="youtube"
-              target="_blank"
-              href="https://www.youtube.com/channel/UCVnLOK7h2-zBRNtmZU8yxBQ"
-            >
-              <YoutubeIcon size={22} />
-            </a>
-          </div>
         </div>
       </div>
+
 
       <div className="panel">
         <select

@@ -4,6 +4,7 @@ import { usePreferencesStore } from 'store/preferences'
 import { TBlendMode } from 'store/preferences/types'
 
 import { useDebounce, useWindowSize } from 'hooks'
+import { MediaStorageService, StoredMedia } from 'services/mediaStorage'
 
 import { Grid } from '@giphy/react-components'
 import { GiphyFetch } from '@giphy/js-fetch-api'
@@ -30,8 +31,32 @@ export const GifModule = () => {
   const preferencesStore = usePreferencesStore()
 
   const [windowWidth] = useWindowSize()
+  const [currentMedia, setCurrentMedia] = React.useState<StoredMedia | null>(null)
+  const [gifEngine, setGifEngine] = React.useState<'giphy' | 'tenor' | 'custom' | 'url'>('giphy')
+  const [urlInput, setUrlInput] = React.useState('')
+  const debouncedUrl = useDebounce(urlInput, 500) as string
 
-  const [gifEngine, setGifEngine] = React.useState('giphy')
+  const isValidMediaUrl = (url: string) => {
+    return url.match(/\.(jpeg|jpg|gif|png|webp|mp4|webm)$/i) !== null
+  }
+
+  React.useEffect(() => {
+    // Load saved media on component mount
+    MediaStorageService.load().then(media => {
+      if (media) {
+        setCurrentMedia(media);
+        preferencesStore.updateGif({ url: media.url });
+        setGifEngine('custom');
+      }
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (currentMedia) {
+        MediaStorageService.cleanup(currentMedia);
+      }
+    };
+  }, []);
 
   const removeGifDialog = React.useRef<IDialogActions>(null)
 
@@ -42,7 +67,11 @@ export const GifModule = () => {
     gf.search(debouncedTerm as string, { offset, limit: 10, type: 'gifs' })
 
   const handleRemoveGif = () => {
-    preferencesStore.removeGif()
+    if (currentMedia) {
+      MediaStorageService.cleanup(currentMedia);
+      setCurrentMedia(null);
+    }
+    preferencesStore.removeGif();
   }
 
   const handleChangeBlend = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -170,10 +199,86 @@ export const GifModule = () => {
           >
             Tenor
           </div>
+          <div
+              className={`gif-tabSelector ${gifEngine === 'custom' ? '--is-active' : ''}`}
+              onClick={() => setGifEngine('custom')}
+            >
+              Local
+          </div>
+          <div
+            className={`gif-tabSelector ${gifEngine === 'url' ? '--is-active' : ''}`}
+            onClick={() => setGifEngine('url')}
+          >
+            URL
+          </div>
         </div>
 
         <div className="gif-tabContent">
-          {gifEngine === 'tenor' ? (
+          {gifEngine === 'url' ? (
+            <div className="url-input">
+              <input
+                type="text"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                placeholder="Enter image or video URL (e.g., https://example.com/video.mp4)"
+              />
+              <button
+                onClick={() => {
+                  if (debouncedUrl && isValidMediaUrl(debouncedUrl)) {
+                    preferencesStore.updateGif({ url: debouncedUrl });
+                  } else {
+                    console.error('Invalid media URL. Please use a direct link to an image or video file.');
+                  }
+                }}
+                disabled={!debouncedUrl || !isValidMediaUrl(debouncedUrl)}
+              >
+                Set Background
+              </button>
+              <p className="url-info">
+                Enter a direct link to an image (.jpg, .png, .gif, .webp) or video file (.mp4, .webm)
+              </p>
+            </div>
+          ) : gifEngine === 'custom' ? (
+            <div className="custom-upload">
+              <input
+                type="file"
+                accept="image/*,video/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    try {
+                      // Cleanup previous media if exists
+                      if (currentMedia) {
+                        MediaStorageService.cleanup(currentMedia);
+                      }
+
+                      // Store new media
+                      const media = await MediaStorageService.store(file);
+                      setCurrentMedia(media);
+                      preferencesStore.updateGif({ url: media.url });
+
+                      // Show success message
+                      const storageType = media.type === 'dataUrl' ? 'Data URL' :
+                                        media.type === 'fileSystem' ? 'File System' : 'Object URL';
+                      console.log(`File stored successfully using ${storageType}`);
+                    } catch (error) {
+                      console.error('Error storing media:', error);
+                      // You might want to show this error to the user
+                    }
+                  }
+                }}
+              />
+              <p className="upload-info">Select an image or video file from your computer</p>
+              {currentMedia && (
+                <p className="storage-info">
+                  Current file: {currentMedia.name} ({(currentMedia.size / 1024 / 1024).toFixed(2)} MB)
+                  <br />
+                  Storage: {currentMedia.type === 'dataUrl' ? 'Data URL' :
+                           currentMedia.type === 'fileSystem' ? 'File System' : 'Object URL'}
+                </p>
+              )}
+            </div>
+          ) : gifEngine === 'tenor' ? (
             <GifPicker
               tenorApiKey={tenorApiKey}
               theme={Theme.DARK}

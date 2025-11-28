@@ -14,7 +14,7 @@ git checkout -b main
 git add -A
 git commit -m 'deploy'
 
-git push -f git@github.com:brunoandradebr/nzxt.git main:page
+git push -f git@github.com:slendercraft/nzxt.git main:page
 
 cd -
 

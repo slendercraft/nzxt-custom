@@ -105,4 +105,69 @@ export const Container = styled.div`
       height: 400px;
     }
   }
+
+  .url-input {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      background: var(--background-contrast-light-color);
+      border: 1px solid var(--background-contrast-lighter-color);
+      border-radius: 4px;
+      color: var(--text-primary-color);
+      font-size: 1.4rem;
+    }
+
+    button {
+      padding: 8px 20px;
+    }
+
+    .url-info {
+      font-size: 1.2rem;
+      color: var(--text-secondary-color);
+      text-align: center;
+    }
+  }
+
+  .custom-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    border: 2px dashed var(--background-contrast-lighter-color);
+    border-radius: 8px;
+    
+    input[type="file"] {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--background-contrast-lighter-color);
+      border-radius: 4px;
+      background: var(--background-contrast-light-color);
+      color: var(--text-primary-color);
+      cursor: pointer;
+    }
+
+    .upload-info {
+      font-size: 1.4rem;
+      color: var(--text-secondary-color);
+      text-align: center;
+    }
+
+    .storage-info {
+      font-size: 1.2rem;
+      color: var(--text-accent-color);
+      text-align: center;
+      padding: 10px;
+      background: var(--background-contrast-light-color);
+      border-radius: 4px;
+      width: 100%;
+    }
+  }
 `
